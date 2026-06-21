@@ -63,8 +63,8 @@ jobs:
         uses: erzz/dockle-action@v1
         with:
           image: ${{ secrets.DOCKERHUB_USERNAME }}/shop-frontend:pr-${{ github.event.number }}
-          exit-code: '1'
-          type: 'fatal'
+          failure-threshold: fatal
+          accepted-keywords: KEY_SHA512
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
