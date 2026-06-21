@@ -9,4 +9,5 @@ RUN npm run build
 # --- runtime stage ---
 FROM nginxinc/nginx-unprivileged:alpine AS runtime
 COPY --from=build /app/dist /usr/share/nginx/html
+USER nginx
 EXPOSE 8080
