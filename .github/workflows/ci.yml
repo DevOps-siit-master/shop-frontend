@@ -64,7 +64,7 @@ jobs:
         with:
           image: ${{ secrets.DOCKERHUB_USERNAME }}/shop-frontend:pr-${{ github.event.number }}
           failure-threshold: fatal
-          accepted-keywords: KEY_SHA512
+          accept-keywords: KEY_SHA512
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
