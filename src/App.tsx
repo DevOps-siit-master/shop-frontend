@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { CartItem, Product } from './types';
 import { MOCK_PRODUCTS } from './mockProducts';
 import { ProductList } from './components/ProductList';
+import { Cart } from './components/Cart';
 
 function App() {
   const [query, setQuery] = useState('');
@@ -24,6 +25,18 @@ function App() {
     });
   };
 
+  const removeFromCart = (id: string) => 
+    setCart((prev) => prev.filter((i) => i.id !== id));
+
+  const changeQuantity = (id: string, delta: number) => {
+    setCart((prev) =>
+      prev
+        .map((i) => (i.id === id ? { ...i, quantity: i.quantity + delta } : i))
+        .filter((i) => i.quantity > 0),
+    );
+  }
+
+  const total = cart.reduce((sum, i) => sum + Number(i.price) * i.quantity, 0);
   const cartCount = cart.reduce((sum, i) => sum + i.quantity, 0);
 
   return (
@@ -42,6 +55,7 @@ function App() {
       />
 
       <ProductList products={products} onAdd={addToCart} />
+      <Cart items={cart} onChangeQty={changeQuantity} onRemove={removeFromCart} total={total} />
     </div>
   );
 }
