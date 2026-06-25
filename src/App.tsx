@@ -3,15 +3,29 @@ import type { CartItem, Product } from './types';
 import { MOCK_PRODUCTS } from './mockProducts';
 import { ProductList } from './components/ProductList';
 import { Cart } from './components/Cart';
+import { createOrder, type OrderResponse } from './api';
 
 function App() {
   const [query, setQuery] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [order, setOrder] = useState<OrderResponse | null>(null);
+  const [error, setError] = useState('');
 
   const products = useMemo(
     () => MOCK_PRODUCTS.filter((p) => p.name.toLowerCase().includes(query.toLowerCase())),
     [query],
   );
+
+  const handleCheckout = async () => {
+    setError('');
+    try {
+      const result = await createOrder(cart);
+      setOrder(result);
+      setCart([]);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
 
   const addToCart = (product: Product) => {
     setCart((prev) => {
@@ -56,6 +70,17 @@ function App() {
 
       <ProductList products={products} onAdd={addToCart} />
       <Cart items={cart} onChangeQty={changeQuantity} onRemove={removeFromCart} total={total} />
+      {cart.length > 0 && (
+        <button onClick={handleCheckout} style={{ marginTop: 16 }}>
+          Create Order
+        </button>
+      )}
+      {order && (
+        <p style={{ color: 'green' }}>
+          ✅ Order created! ID: {order.id} · status: {order.status} · total: {order.total} USDT
+        </p>
+      )}
+      {error && <p style={{ color: 'red' }}>Error: {error}</p>}
     </div>
   );
 }
