@@ -5,6 +5,6 @@ export interface Product {
     stock: number;
 }
 
-export interface ChartItem extends Product {
+export interface CartItem extends Product {
     quantity: number;
 }
