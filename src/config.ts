@@ -1,0 +1,1 @@
+export const API_BASE = import.meta.env.VITE_ORDER_API ?? 'http://localhost:3000';
