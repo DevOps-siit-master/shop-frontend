@@ -6,6 +6,7 @@ import { Cart } from './components/Cart';
 import { createOrder, verifyPayment, type OrderResponse } from './api';
 import { useWallet } from './useWallet';
 import { payWithUSDT } from './pay';
+import { addToCart as addToCartFn, changeQty as changeQtyFn, cartTotal } from './cart';
 
 function App() {
   const [query, setQuery] = useState('');
@@ -40,30 +41,10 @@ function App() {
     }
   };
 
-  const addToCart = (product: Product) => {
-    setCart((prev) => {
-      const existing = prev.find((i) => i.id === product.id);
-      if (existing) {
-        return prev.map((i) =>
-          i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i,
-        );
-      }
-      return [...prev, { ...product, quantity: 1 }];
-    });
-  };
-
-  const removeFromCart = (id: string) => 
-    setCart((prev) => prev.filter((i) => i.id !== id));
-
-  const changeQuantity = (id: string, delta: number) => {
-    setCart((prev) =>
-      prev
-        .map((i) => (i.id === id ? { ...i, quantity: i.quantity + delta } : i))
-        .filter((i) => i.quantity > 0),
-    );
-  }
-
-  const total = cart.reduce((sum, i) => sum + Number(i.price) * i.quantity, 0);
+  const addToCart = (product: Product) => setCart((prev) => addToCartFn(prev, product));
+  const removeFromCart = (id: string) => setCart((prev) => prev.filter((i) => i.id !== id));
+  const changeQuantity = (id: string, delta: number) => setCart((prev) => changeQtyFn(prev, id, delta));
+  const total = cartTotal(cart);
   const cartCount = cart.reduce((sum, i) => sum + i.quantity, 0);
 
   return (
@@ -117,5 +98,3 @@ function App() {
 }
 
 export default App;
-
-
