@@ -5,6 +5,7 @@ import { ProductList } from './components/ProductList';
 import { Cart } from './components/Cart';
 import { createOrder, type OrderResponse } from './api';
 import { useWallet } from './useWallet';
+import { payWithUSDT } from './pay';
 
 function App() {
   const [query, setQuery] = useState('');
@@ -12,6 +13,7 @@ function App() {
   const [order, setOrder] = useState<OrderResponse | null>(null);
   const { account, error: walletError, connect } = useWallet();
   const [error, setError] = useState('');
+  const [txHash, setTxHash] = useState('');
 
   const products = useMemo(
     () => MOCK_PRODUCTS.filter((p) => p.name.toLowerCase().includes(query.toLowerCase())),
@@ -20,12 +22,19 @@ function App() {
 
   const handleCheckout = async () => {
     setError('');
+    setTxHash('');
+    if (!account) {
+      setError('Please connect your wallet first.');
+      return;
+    }
     try {
       const result = await createOrder(cart);
       setOrder(result);
+      const hash = await payWithUSDT(result.total);
+      setTxHash(hash);
       setCart([]);
-    } catch (err) {
-      setError((err as Error).message);
+    } catch (e) {
+      setError((e as Error).message);
     }
   };
 
@@ -87,12 +96,20 @@ function App() {
       <Cart items={cart} onChangeQty={changeQuantity} onRemove={removeFromCart} total={total} />
       {cart.length > 0 && (
         <button onClick={handleCheckout} style={{ marginTop: 16 }}>
-          Create Order
+          Pay with USDT
         </button>
       )}
       {order && (
         <p style={{ color: 'green' }}>
-          ✅ Order created! ID: {order.id} · status: {order.status} · total: {order.total} USDT
+          Order created! ID: {order.id} · status: {order.status} · total: {order.total} USDT
+        </p>
+      )}
+      {txHash && (
+        <p>
+          Payment sent!{' '}
+          <a href={`https://sepolia.etherscan.io/tx/${txHash}`} target="_blank" rel="noreferrer">
+            View on Etherscan
+          </a>
         </p>
       )}
       {error && <p style={{ color: 'red' }}>Error: {error}</p>}
