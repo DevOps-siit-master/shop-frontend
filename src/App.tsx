@@ -4,11 +4,13 @@ import { MOCK_PRODUCTS } from './mockProducts';
 import { ProductList } from './components/ProductList';
 import { Cart } from './components/Cart';
 import { createOrder, type OrderResponse } from './api';
+import { useWallet } from './useWallet';
 
 function App() {
   const [query, setQuery] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [order, setOrder] = useState<OrderResponse | null>(null);
+  const { account, error: walletError, connect } = useWallet();
   const [error, setError] = useState('');
 
   const products = useMemo(
@@ -57,8 +59,21 @@ function App() {
     <div style={{ maxWidth: 800, margin: '0 auto', padding: 24 }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1>ShopHub Store</h1>
-        <span>🛒 {cartCount}</span>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+          {account ? (
+            <span title={account}>
+              {account.slice(0, 6)}...{account.slice(-4)}
+            </span>
+          ) : (
+            <button onClick={connect}>Connect Wallet</button>
+          )}
+          <span>🛒 {cartCount}</span>
+        </div>
       </header>
+      {walletError && <p style={{ color: 'red' }}>{walletError}</p>}
+
+
+
 
       <input
         type="text"
