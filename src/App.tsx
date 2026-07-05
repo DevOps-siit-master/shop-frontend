@@ -3,7 +3,7 @@ import type { CartItem, Product } from './types';
 import { MOCK_PRODUCTS } from './mockProducts';
 import { ProductList } from './components/ProductList';
 import { Cart } from './components/Cart';
-import { createOrder, type OrderResponse } from './api';
+import { createOrder, verifyPayment, type OrderResponse } from './api';
 import { useWallet } from './useWallet';
 import { payWithUSDT } from './pay';
 
@@ -32,6 +32,8 @@ function App() {
       setOrder(result);
       const hash = await payWithUSDT(result.total);
       setTxHash(hash);
+      const verified = await verifyPayment(result.id, hash);
+      setOrder({ ...result, status: verified.status });
       setCart([]);
     } catch (e) {
       setError((e as Error).message);
@@ -80,9 +82,6 @@ function App() {
         </div>
       </header>
       {walletError && <p style={{ color: 'red' }}>{walletError}</p>}
-
-
-
 
       <input
         type="text"
