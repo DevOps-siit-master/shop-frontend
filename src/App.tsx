@@ -1,20 +1,59 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { CartItem, Product } from './types';
 import { MOCK_PRODUCTS } from './mockProducts';
 import { ProductList } from './components/ProductList';
 import { Cart } from './components/Cart';
+import { AuthForm } from './components/AuthForm';
+import { me, refresh, tokenStore, type AuthUser } from './authApi';
 import { createOrder, verifyPayment, type OrderResponse } from './api';
 import { useWallet } from './useWallet';
 import { payWithUSDT } from './pay';
 import { addToCart as addToCartFn, changeQty as changeQtyFn, cartTotal } from './cart';
 
 function App() {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [query, setQuery] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [order, setOrder] = useState<OrderResponse | null>(null);
   const { account, error: walletError, connect } = useWallet();
   const [error, setError] = useState('');
   const [txHash, setTxHash] = useState('');
+
+  // On load, restore the session from stored tokens (refreshing if the access
+  // token has expired).
+  useEffect(() => {
+    const restore = async () => {
+      const access = tokenStore.access;
+      if (!access) {
+        setAuthChecked(true);
+        return;
+      }
+      try {
+        setUser(await me(access));
+      } catch {
+        const rt = tokenStore.refresh;
+        try {
+          if (!rt) throw new Error('no refresh token');
+          const tokens = await refresh(rt);
+          tokenStore.save(tokens);
+          setUser(await me(tokens.accessToken));
+        } catch {
+          tokenStore.clear();
+        }
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+    void restore();
+  }, []);
+
+  const logout = () => {
+    tokenStore.clear();
+    setUser(null);
+    setCart([]);
+    setOrder(null);
+  };
 
   const products = useMemo(
     () => MOCK_PRODUCTS.filter((p) => p.name.toLowerCase().includes(query.toLowerCase())),
@@ -47,6 +86,14 @@ function App() {
   const total = cartTotal(cart);
   const cartCount = cart.reduce((sum, i) => sum + i.quantity, 0);
 
+  if (!authChecked) {
+    return <p style={{ textAlign: 'center', marginTop: '10vh' }}>Loading…</p>;
+  }
+
+  if (!user) {
+    return <AuthForm onAuthenticated={setUser} />;
+  }
+
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: 24 }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -60,6 +107,8 @@ function App() {
             <button onClick={connect}>Connect Wallet</button>
           )}
           <span>🛒 {cartCount}</span>
+          <span style={{ color: '#888' }}>{user.email}</span>
+          <button onClick={logout}>Log out</button>
         </div>
       </header>
       {walletError && <p style={{ color: 'red' }}>{walletError}</p>}
