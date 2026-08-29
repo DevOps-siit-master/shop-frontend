@@ -3,7 +3,7 @@ import type { CartItem, Product } from './types';
 import { MOCK_PRODUCTS } from './mockProducts';
 import { ProductList } from './components/ProductList';
 import { Cart } from './components/Cart';
-import { createOrder, verifyPayment, type OrderResponse } from './api';
+import { createOrder, fetchPaymentConfig, verifyPayment, type OrderResponse } from './api';
 import { useWallet } from './useWallet';
 import { payWithUSDT } from './pay';
 import { addToCart as addToCartFn, changeQty as changeQtyFn, cartTotal } from './cart';
@@ -31,7 +31,8 @@ function App() {
     try {
       const result = await createOrder(cart);
       setOrder(result);
-      const hash = await payWithUSDT(result.total);
+      const config = await fetchPaymentConfig();
+      const hash = await payWithUSDT(result.total, config);
       setTxHash(hash);
       const verified = await verifyPayment(result.id, hash);
       setOrder({ ...result, status: verified.status });
