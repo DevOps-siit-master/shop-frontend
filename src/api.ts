@@ -35,3 +35,15 @@ export async function verifyPayment(orderId: string, txHash: string) {
   if (!res.ok) throw new Error('Payment verification failed');
   return res.json();
 }
+
+export interface PaymentConfig {
+  walletAddress: string;
+  tokenAddress: string;
+  chainId?: number;
+}
+
+export async function fetchPaymentConfig(): Promise<PaymentConfig> {
+  const res = await fetch(`${PAYMENT_API}/payments/config`);
+  if (!res.ok) throw new Error('Failed to fetch payment config');
+  return res.json();
+}
