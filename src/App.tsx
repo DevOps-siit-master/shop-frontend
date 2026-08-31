@@ -4,6 +4,7 @@ import { ProductList } from "./components/ProductList";
 import { Cart } from "./components/Cart";
 import {
   createOrder,
+  fetchPaymentConfig,
   fetchProducts,
   verifyPayment,
   type OrderResponse,
@@ -49,7 +50,8 @@ function App() {
     try {
       const result = await createOrder(cart);
       setOrder(result);
-      const hash = await payWithUSDT(result.total);
+      const config = await fetchPaymentConfig();
+      const hash = await payWithUSDT(result.total, config);
       setTxHash(hash);
       const verified = await verifyPayment(result.id, hash);
       setOrder({ ...result, status: verified.status });

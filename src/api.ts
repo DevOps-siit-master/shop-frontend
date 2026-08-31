@@ -78,3 +78,15 @@ export async function deleteProduct(id: string): Promise<void> {
   });
   if (!res.ok) throw new Error(`Failed to delete product: ${res.status}`);
 }
+
+export interface PaymentConfig {
+  walletAddress: string;
+  tokenAddress: string;
+  chainId?: number;
+}
+
+export async function fetchPaymentConfig(): Promise<PaymentConfig> {
+  const res = await fetch(`${PAYMENT_API}/payments/config`);
+  if (!res.ok) throw new Error("Failed to fetch payment config");
+  return res.json();
+}
