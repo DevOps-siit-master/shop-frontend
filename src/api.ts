@@ -1,5 +1,11 @@
 import { API_BASE, INVENTORY_API, PAYMENT_API } from "./config";
+import { getToken } from "./auth";
 import type { CartItem, Product } from "./types";
+
+function authHeaders(): Record<string, string> {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 export interface OrderResponse {
   id: string;
@@ -52,7 +58,7 @@ export type ProductInput = Omit<Product, "id">;
 export async function createProduct(input: ProductInput): Promise<Product> {
   const res = await fetch(`${INVENTORY_API}/products`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(input),
   });
   if (!res.ok) throw new Error(`Failed to create product: ${res.status}`);
@@ -64,8 +70,8 @@ export async function updateProduct(
   input: ProductInput,
 ): Promise<Product> {
   const res = await fetch(`${INVENTORY_API}/products/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(input),
   });
   if (!res.ok) throw new Error(`Failed to update product: ${res.status}`);
@@ -75,6 +81,7 @@ export async function updateProduct(
 export async function deleteProduct(id: string): Promise<void> {
   const res = await fetch(`${INVENTORY_API}/products/${id}`, {
     method: "DELETE",
+    headers: authHeaders(),
   });
   if (!res.ok) throw new Error(`Failed to delete product: ${res.status}`);
 }
