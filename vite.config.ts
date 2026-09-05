@@ -6,6 +6,11 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
+      "/auth-api": {
+        target: process.env.VITE_AUTH_TARGET ?? "http://localhost:3000",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/auth-api/, ""),
+      },
       "/order-api": {
         target: process.env.VITE_ORDER_TARGET ?? "http://localhost:3000",
         changeOrigin: true,
